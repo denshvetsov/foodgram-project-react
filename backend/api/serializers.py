@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import F
-from rest_framework.serializers import (ModelSerializer, SerializerMethodField,
-                                        ValidationError,)
 
 from drf_extra_fields.fields import Base64ImageField
+
+from rest_framework.serializers import (ModelSerializer, SerializerMethodField,
+                                        ValidationError,)
 
 from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
 
@@ -204,8 +205,7 @@ class RecipeSerializer(ModelSerializer):
 
     def update(self, recipe, validated_data):
         tags = validated_data.get('tags')
-        ingredients = validated_data.get(
-            'ingredients')
+        ingredients = validated_data.get('ingredients')
         recipe.image = validated_data.get(
             'image', recipe.image)
         recipe.name = validated_data.get(
