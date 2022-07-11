@@ -50,7 +50,8 @@ jobs:
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.HOST_USER }}
           privateKey: ${{ secrets.SSH_KEY }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          passphrase: ${{ secrets.SSH_PASSWORD }}
+          tryKeyboard: True
 
   # build_push_backend_to_DockerHub:
   #   name: Building back image and pushing it to Docker Hub
