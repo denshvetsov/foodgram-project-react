@@ -8,9 +8,11 @@ class IngredientInline(admin.TabularInline):
     model = IngredientAmount
     extra = 1
 
+
 @admin.register(IngredientAmount)
 class IngredientAmountAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'amount', 'recipe')
+
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
@@ -18,6 +20,7 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('name',)
     save_on_top = True
+
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
@@ -36,17 +39,18 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = (
         'name', 'author__username',
     )
-    save_on_top = True    
+    save_on_top = True
     inlines = (IngredientInline,)
 
     def get_image(self, obj):
+        """
+        пиктограмма изображения в админ панели
+        """
         return mark_safe(f'<img src={obj.image.url} width="80" hieght="30">')
-        #return mark_safe("<img src='https://dvmn.org/filer/canonical/1591892373/669/'>")
     get_image.short_description = 'Изображение'
+
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color_code', 'slug',)
     search_fields = ('name', 'color',)
-
-

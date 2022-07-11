@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import (MaxValueValidator, MinLengthValidator,
-                                    MinValueValidator, validate_slug,)
+                                    MinValueValidator, RegexValidator,
+                                    validate_slug,)
 from django.db.models import (CASCADE, CharField, DateTimeField, ForeignKey,
                               ImageField, ManyToManyField, Model,
                               PositiveSmallIntegerField, TextField,
@@ -13,21 +14,32 @@ from django.utils.safestring import mark_safe
 
 User = get_user_model()
 
+
 class Ingredient(Model):
+    """
+    Модель интгридиентов - ингридиенты добавляются администратором
+    через admin панель. Обязательная проверка на уникальность
+    сочетания name и measurement_unit
+    search_vector - вспомогательное поле для поиска ингридиента
+    """
     name = CharField(
         verbose_name='Ингридиент',
         max_length=settings.MAX_LEN_INGRIDIENT_CHARFIELD,
-        #unique=True,
-        validators=[MinLengthValidator(
-                settings.MIN_LEN_INGRIDIENT_CHARFIELD, settings.MIN_LEN_INGRIDIENT_ERROR_MSG
-            )]
+        validators=[
+            MinLengthValidator(
+                settings.MIN_LEN_INGRIDIENT_CHARFIELD,
+                settings.MIN_LEN_INGRIDIENT_ERROR_MSG
+            )
+        ]
     )
     measurement_unit = CharField(
         verbose_name='Единицы измерения',
         max_length=settings.MAX_LEN_INGRIDIENT_CHARFIELD,
-        validators=[MinLengthValidator(
+        validators=[
+            MinLengthValidator(
                 1, 'Введите обозначение единицы измерения'
-            )]
+            )
+        ]
     )
     search_vector = SearchVectorField(null=True)
 
@@ -47,13 +59,19 @@ class Ingredient(Model):
 
 
 class Tag(Model):
+    """
+    Тег используется для фильтра рецептов. Создает администратор
+    через admin панель
+    color - цветовой код в формате #F08080
+    """
+
     name = CharField(
         verbose_name='Тэг',
         max_length=settings.MAX_LEN_RECIPE_CHARFIELD,
         unique=True,
-        validators=[MinLengthValidator(
-                1, 'Введите название'
-            )]
+        validators=[
+            MinLengthValidator(1, 'Введите название'),
+        ]
     )
     color = CharField(
         verbose_name='Цветовой HEX-код',
@@ -61,37 +79,45 @@ class Tag(Model):
         blank=True,
         null=True,
         default='#',
-        validators=[MinLengthValidator(
-                6, 'Цветовой HEX-код'
-            )]
+        unique=True,
+        validators=[
+            RegexValidator(
+                "^#([A-Fa-f0-9]{6})$",
+                "введите код цвета в формате #F08080"
+            ),
+        ],
     )
     slug = CharField(
         verbose_name='Слаг тэга',
         max_length=settings.MAX_LEN_RECIPE_CHARFIELD,
         unique=True,
-        validators=[MinLengthValidator(
-                3, 'Минимально 3 символа'
-            ), validate_slug]
+        validators=[
+            MinLengthValidator(3, 'Минимально 3 символа'),
+            validate_slug,
+        ]
     )
 
     class Meta:
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
         ordering = ('name', )
-    
+
     @admin.display
     def color_code(self):
+        """
+        отображение цвета тега в админ панели
+        """
         return mark_safe(
             format_html(
-            '<span style="color: {};">{}</span>',
-            self.color,
-            self.color,
+                '<span style="color: {};">{}</span>',
+                self.color,
+                self.color,
             )
         )
 
     def save(self, *args, **kwargs):
         """
-        превод слега в нижний регистр
+        превод слега в нижний регистр при сохранении
         """
         self.slug = self.slug.lower()
         return super(Tag, self).save(*args, **kwargs)
@@ -104,6 +130,15 @@ class Recipe(Model):
     name = CharField(
         verbose_name='Название блюда',
         max_length=settings.MAX_LEN_RECIPE_CHARFIELD,
+        validators=(
+            MinLengthValidator(
+                settings.MIN_LEN_RECIPE_CHARFIELD,
+                settings.MIN_LEN_USER_ERROR_MSG
+            ),
+            RegexValidator(
+                '^[a-zA-Zа-яА-Я]+$'
+            )
+        )
     )
     author = ForeignKey(
         verbose_name='Автор рецепта',
@@ -169,11 +204,16 @@ class Recipe(Model):
                 name='unique_recipe_for_author'
             ),
         )
+
     def __str__(self) -> str:
         return f'{self.name}. Автор: {self.author.username}'
 
 
 class IngredientAmount(Model):
+    """
+    количество ингридиента в рецептах
+    каждый ингридиент в рецепте используется только один раз
+    """
     recipe = ForeignKey(
         verbose_name='В рецептах',
         related_name='ingredient',

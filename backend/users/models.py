@@ -1,16 +1,22 @@
-import uuid
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator, RegexValidator
-from django.db.models import (CASCADE, CharField, CheckConstraint, EmailField,
-                              F, ForeignKey, ManyToManyField, Model, Q,
-                              UniqueConstraint,)
+from django.db.models import CharField, EmailField, ManyToManyField
+
 
 USER = 'user'
 ADMIN = 'admin'
 
+
 class User(AbstractUser):
+    """
+    Модель пользователя.
+    role - роль пользователя, назначается через админ панель
+    по умолчанию присваивается USER
+    AMDIN - дает права изменять рецепты созданные другими пользователями
+    email - электронная почта, используется при авторизации
+    """
+
     ROLE_CHOICES = (
         (USER, 'Пользователь'),
         (ADMIN, 'Администратор'),
@@ -30,7 +36,8 @@ class User(AbstractUser):
         unique=True,
         validators=(
             MinLengthValidator(
-                settings.MIN_LEN_INGRIDIENT_CHARFIELD, settings.MIN_LEN_USER_ERROR_MSG
+                settings.MIN_LEN_USER_CHARFIELD,
+                settings.MIN_LEN_USER_ERROR_MSG
             ),
             RegexValidator(
                 '^[a-zA-Zа-яА-Я]+$'
@@ -40,10 +47,28 @@ class User(AbstractUser):
     first_name = CharField(
         verbose_name='Имя',
         max_length=settings.MAX_LEN_USER_CHARFIELD,
+        validators=(
+            MinLengthValidator(
+                settings.MIN_LEN_USER_CHARFIELD,
+                settings.MIN_LEN_USER_ERROR_MSG
+            ),
+            RegexValidator(
+                '^[a-zA-Zа-яА-Я]+$'
+            )
+        )
     )
     last_name = CharField(
         verbose_name='Фамилия',
         max_length=settings.MAX_LEN_USER_CHARFIELD,
+        validators=(
+            MinLengthValidator(
+                settings.MIN_LEN_USER_CHARFIELD,
+                settings.MIN_LEN_USER_ERROR_MSG
+            ),
+            RegexValidator(
+                '^[a-zA-Zа-яА-Я]+$'
+            )
+        )
     )
 
     subscribe = ManyToManyField(
@@ -53,12 +78,12 @@ class User(AbstractUser):
         symmetrical=False,
         blank=True
     )
-    
+
     class Meta:
         ordering = ['username']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-    
+
     @property
     def is_user(self):
         return self.role == USER

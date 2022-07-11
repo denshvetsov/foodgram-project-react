@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -22,7 +21,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost', 
+    'http://localhost',
     'http://127.0.0.1',
     'https://foodgram.auxlink.com'
 ]
@@ -56,7 +55,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'foodgram.urls'
 
-#TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -126,8 +124,6 @@ DJOSER = {
     },
 }
 
-
-
 LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
@@ -166,5 +162,6 @@ MIN_LEN_INGRIDIENT_CHARFIELD = 3
 MIN_LEN_USER_ERROR_MSG = f'введите более {MIN_LEN_USER_CHARFIELD} символов'
 MIN_LEN_INGRIDIENT_ERROR_MSG = f'введите более {MIN_LEN_INGRIDIENT_CHARFIELD} символов'
 
+MIN_LEN_RECIPE_CHARFIELD = 3
 MAX_LEN_RECIPE_CHARFIELD = 150
 MAX_LEN_RECIPE_TEXTFIELD = 3000
