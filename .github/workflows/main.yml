@@ -24,9 +24,6 @@ jobs:
         pip install -r backend/requirements.txt
     - name: Test with flake8
       run: |
-        ls -la
-        which python
-        cat setup.cfg
         python -m flake8 backend/
   
   copy_infra_to_server:
@@ -53,6 +50,7 @@ jobs:
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.HOST_USER }}
           privateKey: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSWORD }}
 
   build_push_backend_to_DockerHub:
     name: Building back image and pushing it to Docker Hub
