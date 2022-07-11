@@ -3,7 +3,7 @@ import os
 
 from django.core.management.base import BaseCommand
 
-from recipes import models
+from recipes.models import Ingredient
 
 data = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath("data")))
@@ -12,7 +12,7 @@ data = os.path.dirname(
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        models.Ingredient.objects.all().delete()
+        Ingredient.objects.all().delete()
         with open(
             f"{data}/foodgram-project-react/data/ingredients.json",
             "r"
@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     name = record.get("name")
                     measurement_unit = record.get("measurement_unit")
                     try:
-                        models.Ingredient.objects.get_or_create(
+                        Ingredient.objects.get_or_create(
                             name=name,
                             measurement_unit=measurement_unit
                         )
@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 print(
                     f"Загрузка ингридиентов завершена! "
                     f"Загружено товаров: "
-                    f"{models.Ingredient.objects.all().count()}"
+                    f"{Ingredient.objects.all().count()}"
                 )
             except Exception as error:
                 print("Что-то не так с моделями, путями или базой данных "

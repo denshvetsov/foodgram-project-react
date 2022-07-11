@@ -27,6 +27,7 @@ jobs:
         ls -la
         which python
         cat setup.cfg
+        isort --show-config
         python -m flake8 backend/
   
   copy_infra_to_server:
