@@ -25,7 +25,7 @@ jobs:
     - name: Test with flake8
       run: |
         ls -la
-        cat setuf.cfg
+        cat setup.cfg
         python -m flake8 backend/
   
   copy_infra_to_server:
