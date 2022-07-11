@@ -24,6 +24,8 @@ jobs:
         pip install -r backend/requirements.txt
     - name: Test with flake8
       run: |
+        ls -la
+        cat setuf.cfg
         python -m flake8 backend/
   
   copy_infra_to_server:
