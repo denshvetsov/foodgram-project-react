@@ -1,22 +1,6 @@
-version: '3.3'
-services:
+version: '3.8'
 
-  frontend:
-    image: denshvetsov/foodgram_frontend:latest
-    volumes:
-      - ./frontend/:/app/result_build/
-  nginx:
-    image: nginx:1.19.3
-    ports:
-      - "8002:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./frontend/build:/usr/share/nginx/html/
-      #- ../docs/:/usr/share/nginx/html/api/docs/
-      - ./docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
-      - ./docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
-      - static_value:/var/html/static/
-      - media_value:/var/html/media/
+services:
   db:
     image: postgres:13.0-alpine
     volumes:
@@ -39,6 +23,27 @@ services:
       - db
     env_file:
       - ./.env
+
+  frontend:
+    image: denshvetsov/foodgram_frontend:latest
+    volumes:
+      - ./frontend/:/app/result_build/
+  
+  nginx:
+    image: nginx:1.19.3
+    ports:
+      - "8002:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/build:/usr/share/nginx/html/
+      #- ../docs/:/usr/share/nginx/html/api/docs/
+      - ./docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
+      - ./docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
+      - static_value:/var/html/static/
+      - media_value:/var/html/media/
+    depends_on:
+      - backend
+
 
 volumes:
   static_value:
