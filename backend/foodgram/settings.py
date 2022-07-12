@@ -8,23 +8,29 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
 
-DEBUG = True
+DEBUG = os.getenv(
+    'DEBUG', default=False
+)
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    '10.0.1.100',
-    'localhost',
-    'web',
-    'foodgram.auxlink.com',
-    '95.165.26.109',
-    'backend'
-]
+ALLOWED_HOSTS = os.getenv(
+    'SECRET_KEY', default= [
+        '127.0.0.1',
+        '10.0.1.100',
+        'localhost',
+        'web',
+        'foodgram.auxlink.com',
+        '95.165.26.109',
+        'backend'
+    ]
+)
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost',
-    'http://127.0.0.1',
-    'https://foodgram.auxlink.com'
-]
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'SECRET_KEY', default= [
+        'http://localhost',
+        'http://127.0.0.1',
+        'https://foodgram.auxlink.com'
+    ]
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
