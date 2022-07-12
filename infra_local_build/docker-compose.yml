@@ -2,19 +2,21 @@ version: '3.3'
 services:
 
   frontend:
-    image: denshvetsov/foodgram_frontend:latest
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
-      - ./frontend/:/app/result_build/
+      - ../frontend/:/app/result_build/
   nginx:
     image: nginx:1.19.3
     ports:
-      - "8002:80"
+      - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./frontend/build:/usr/share/nginx/html/
-      #- ../docs/:/usr/share/nginx/html/api/docs/
-      - ./docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
-      - ./docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ../docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
+      - ../docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
       - static_value:/var/html/static/
       - media_value:/var/html/media/
   db:
@@ -25,7 +27,9 @@ services:
       - ./.env
 
   backend:
-    image: denshvetsov/foodgram_backend:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     command: >
       bash -c "python manage.py makemigrations &&
       python manage.py migrate &&

@@ -2,7 +2,12 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv('../infra/.env')
+load_dotenv('../infra/.env') 
+
+# Отладочная конфигурация для локальной сборки
+LOCAL_BUILD = False
+if LOCAL_BUILD:
+    load_dotenv('../infra_local_build/.env')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -12,25 +17,9 @@ DEBUG = os.getenv(
     'DEBUG', default=False
 )
 
-ALLOWED_HOSTS = os.getenv(
-    'SECRET_KEY', default=[
-        '127.0.0.1',
-        '10.0.1.100',
-        'localhost',
-        'web',
-        'foodgram.auxlink.com',
-        '95.165.26.109',
-        'backend'
-    ]
-)
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split()
 
-CSRF_TRUSTED_ORIGINS = os.getenv(
-    'SECRET_KEY', default=[
-        'http://localhost',
-        'http://127.0.0.1',
-        'https://foodgram.auxlink.com'
-    ]
-)
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS',).split()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -81,14 +70,16 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default='postgres'),
-        'USER': os.getenv('POSTGRES_USER', default='postgres'),
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
+
+print (DATABASES)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
