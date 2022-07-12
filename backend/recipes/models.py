@@ -136,7 +136,11 @@ class Recipe(Model):
                 settings.MIN_LEN_USER_ERROR_MSG
             ),
             RegexValidator(
-                '^[a-zA-Zа-яА-Я]+$'
+                '^[a-zA-Zа-яА-Я ]+$',
+                (
+                    'Название может быть только из русских, '
+                    'латниских букв и пробела между словами'
+                )
             )
         )
     )
