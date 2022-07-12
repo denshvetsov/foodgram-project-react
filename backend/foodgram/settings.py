@@ -11,11 +11,11 @@ if LOCAL_BUILD:
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
-
 DEBUG = os.getenv(
     'DEBUG', default=False
 )
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split()
 

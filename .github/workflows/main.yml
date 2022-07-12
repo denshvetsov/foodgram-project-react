@@ -99,41 +99,41 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USER }}/foodgram_frontend:latest
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: [
-  #     copy_infra_to_server,
-  #     build_push_backend_to_DockerHub,
-  #     build_push_frontend_to_DockerHub
-  #   ]
-  #   steps:
-  #   - name: remote ssh commands to deploy
-  #     uses: appleboy/ssh-action@master
-  #     with:
-  #       host: ${{ secrets.HOST_IP }}
-  #       username: ${{ secrets.HOST_USER }}
-  #       key: ${{ secrets.SSH_KEY }}
-  #       passphrase: ${{ secrets.SSH_PASSWORD }}
-  #       script: |
-  #         cd foodgram/
-  #         # rm .env
-  #         # touch .env
-  #         # echo DEBUG=${{ secrets.DEBUG }} >> .env
-  #         # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-  #         # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
-  #         # echo CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} >> .env
-  #         # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-  #         # echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-  #         # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-  #         # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-  #         # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-  #         # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-  #         echo ${{ secrets.SUDO_PASS }} | sudo -S docker-compose stop
-  #         echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_frontend_1
-  #         echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_backend_1
-  #         echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_front
-  #         echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_back
-  #         echo ${{ secrets.SUDO_PASS }} | sudo -S docker compose up -d
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [
+      copy_infra_to_server,
+      build_push_backend_to_DockerHub,
+      build_push_frontend_to_DockerHub
+    ]
+    steps:
+    - name: remote ssh commands to deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST_IP }}
+        username: ${{ secrets.HOST_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSWORD }}
+        script: |
+          cd foodgram/
+          # rm .env
+          # touch .env
+          # echo DEBUG=${{ secrets.DEBUG }} >> .env
+          # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+          # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
+          # echo CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} >> .env
+          # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+          # echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+          # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+          # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+          # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+          # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker-compose stop
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_frontend_1
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_backend_1
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_front
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_back
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker compose up -d
   
   # send_message:
   #   runs-on: ubuntu-latest
