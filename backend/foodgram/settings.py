@@ -13,7 +13,7 @@ DEBUG = os.getenv(
 )
 
 ALLOWED_HOSTS = os.getenv(
-    'SECRET_KEY', default= [
+    'SECRET_KEY', default=[
         '127.0.0.1',
         '10.0.1.100',
         'localhost',
@@ -25,7 +25,7 @@ ALLOWED_HOSTS = os.getenv(
 )
 
 CSRF_TRUSTED_ORIGINS = os.getenv(
-    'SECRET_KEY', default= [
+    'SECRET_KEY', default=[
         'http://localhost',
         'http://127.0.0.1',
         'https://foodgram.auxlink.com'
