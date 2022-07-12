@@ -133,7 +133,7 @@ jobs:
           echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_backend_1
           echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_front
           echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_back
-          echo ${{ secrets.SUDO_PASS }} | sudo -S docker-compose up -d
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker compose up -d
   
   # send_message:
   #   runs-on: ubuntu-latest
