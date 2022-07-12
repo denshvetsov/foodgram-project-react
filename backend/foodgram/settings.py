@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv('../infra/.env') 
+load_dotenv('../infra/.env')
 
 # Отладочная конфигурация для локальной сборки
 LOCAL_BUILD = False
@@ -78,8 +78,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
-
-print (DATABASES)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
