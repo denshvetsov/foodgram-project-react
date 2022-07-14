@@ -32,48 +32,48 @@ https://foodgram.auxlink.com/
 
 # Установка
 Подготовьте сервер к установке
-воспользуйтесь [!дополнительными рекомендациями по установке сервера](https://github.com/denshvetsov/server_deploy)
-
-Клонируйте репозиторий
-в каталоге /infra/ Создайте .env файл в формате
-
-DEBUG=False
-SECRET_KEY=Ah!Is3g|&~6f9_DgQE["$8(A$]<:&&
-ALLOWED_HOSTS=127.0.0.1 10.0.1.100 localhost web foodgram.auxlink.com 95.165.26.109 backend
-CSRF_TRUSTED_ORIGINS = http://localhost http://127.0.0.1 https://foodgram.auxlink.com
-DB_ENGINE=django.db.backends.postgresql
-DB_NAME=postgres
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-DB_HOST=db
-DB_PORT=5432
-EMAIL_HOST=smtp.<ваш домен>.ru
-EMAIL_PORT=587
-EMAIL_HOST_USER=<ваша почта>
-EMAIL_HOST_PASSWORD=<ваш пароль>
-DEFAULT_FROM_EMAIL=<ваша почта>
-EMAIL_USE_TLS=True
-
-скопируйте папку /infra/
-scp -r infra/* di@<you server ip>:/home/<username>/foodgram/
-
-подключитесь к серверу через ssh и перейдите в каталог
-/home/<username>/foodgram/
-
-запустите установку и сборку контейнеров
-docker compose up -d
+воспользуйтесь [дополнительными рекомендациями по установке сервера](https://github.com/denshvetsov/server_deploy)<br/>
+<br/>
+Клонируйте репозиторий<br/>
+в каталоге /infra/ Создайте .env файл в формате<br/>
+<br/>
+DEBUG=False<br/>
+SECRET_KEY=Ah!Is3g|&~fftth4e3sssqq["$8(A$]<:&&<br/>
+ALLOWED_HOSTS=127.0.0.1 10.0.1.100 localhost web foodgram.auxlink.com 95.165.26.109 backend<br/>
+CSRF_TRUSTED_ORIGINS = http://localhost http://127.0.0.1 https://foodgram.auxlink.com<br/>
+DB_ENGINE=django.db.backends.postgresql<br/>
+DB_NAME=postgres<br/>
+POSTGRES_USER=postgres<br/>
+POSTGRES_PASSWORD=postgres<br/>
+DB_HOST=db<br/>
+DB_PORT=5432<br/>
+EMAIL_HOST=smtp.<ваш домен>.ru<br/>
+EMAIL_PORT=587<br/>
+EMAIL_HOST_USER=<ваша почта><br/>
+EMAIL_HOST_PASSWORD=<ваш пароль><br/>
+DEFAULT_FROM_EMAIL=<ваша почта><br/>
+EMAIL_USE_TLS=True<br/>
+<br/>
+скопируйте папку /infra/<br/>
+scp -r infra/* di@<you server ip>:/home/<username>/foodgram/<br/>
+<br/>
+подключитесь к серверу через ssh и перейдите в каталог<br/>
+/home/<username>/foodgram/<br/>
+<br/>
+запустите установку и сборку контейнеров<br/>
+docker compose up -d<br/>
 
 ## Полезные команды при работе с Docker
-посмотреть логи контейнера
-docker logs --since=1h <container_id>
+посмотреть логи контейнера<br/>
+docker logs --since=1h <container_id><br/>
 
-подключить к контейнеру
-docker exec -it bb2bfcf5a354 sh
+подключить к контейнеру<br/>
+docker exec -it bb2bfcf5a354 sh<br/>
 
 # список контейнеров, образов, и volumes
-docker ps
-docker image ls
-docker volume ls
+docker ps<br/>
+docker image ls<br/>
+docker volume ls<br/>
 
 остановить все контейнеры и удалить
 docker compose stop
