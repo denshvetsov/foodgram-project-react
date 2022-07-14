@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv('../infra/.env')
 
 # Отладочная конфигурация для локальной сборки
-LOCAL_BUILD = False
+LOCAL_BUILD = True
 if LOCAL_BUILD:
     load_dotenv('../infra_local_build/.env')
 

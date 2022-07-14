@@ -9,4 +9,3 @@ class LimitPageNumberPagination(PageNumberPagination):
     необходим для совместимости с текущей реализацией api fronend
     """
     page_size_query_param = 'limit'
-    page_query_param = 'recipes_limit=3'
