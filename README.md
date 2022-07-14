@@ -55,10 +55,10 @@ DEFAULT_FROM_EMAIL=<ваша почта><br/>
 EMAIL_USE_TLS=True<br/>
 <br/>
 скопируйте папку /infra/<br/>
-scp -r infra/* di@<you server ip>:/home/<username>/foodgram/<br/>
+scp -r infra/* di@<you server ip>:/home/< username >/foodgram/<br/>
 <br/>
 подключитесь к серверу через ssh и перейдите в каталог<br/>
-/home/<username>/foodgram/<br/>
+/home/< username >/foodgram/<br/>
 <br/>
 запустите установку и сборку контейнеров<br/>
 docker compose up -d<br/>
@@ -70,17 +70,17 @@ docker logs --since=1h <container_id><br/>
 подключить к контейнеру<br/>
 docker exec -it bb2bfcf5a354 sh<br/>
 
-# список контейнеров, образов, и volumes
+### список контейнеров, образов, и volumes
 docker ps<br/>
 docker image ls<br/>
 docker volume ls<br/>
 
 остановить все контейнеры и удалить
-"docker compose stop"<br/>
-"sudo docker compose rm web"<br/>
-"docker stop $(docker ps -a -q)"<br/>
-"docker rm $(docker ps -a -q)"<br/>
-"docker rmi $(docker image ls)"<br/>
+docker compose stop<br/>
+sudo docker compose rm web<br/>
+docker stop $(docker ps -a -q)<br/>
+docker rm $(docker ps -a -q)<br/>
+docker rmi $(docker image ls)<br/>
 
 # остановить и удалить все контенеры на сервере
 "docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker image ls)"<br/>
