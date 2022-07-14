@@ -82,10 +82,6 @@ docker stop $(docker ps -a -q)<br/>
 docker rm $(docker ps -a -q)<br/>
 docker rmi $(docker image ls)<br/>
 
-# остановить и удалить все контенеры на сервере
-"docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker image ls)"<br/>
-
-
 # Создайте суперпользователя
 Создайте администратора как в обычном Django-проекте
 docker ps
