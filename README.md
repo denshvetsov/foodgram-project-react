@@ -83,18 +83,19 @@ docker rm $(docker ps -a -q)<br/>
 docker rmi $(docker image ls)<br/>
 
 # Создайте суперпользователя
-Создайте администратора как в обычном Django-проекте
-docker ps
-docker exec -it <CONTAINER ID> bash
+Создайте администратора как в обычном Django-проекте<br/>
+docker ps<br/>
+docker exec -it < CONTAINER ID > bash <br/>
 
-python manage.py createsuperuser
+python manage.py createsuperuser<br/>
 
-теперь вы можете работать с админ панелью
-<you server name>/admin/
+теперь вы можете работать с админ панелью<br/>
+<you server name>/admin/<br/>
 
 
 # Автор backend сервисов
 [Денис Швецов](https://github.com/denshvetsov)
 
-
+# Автор frontend сервисов
+[Yandex Praktikum](https://github.com/yandex-praktikum)
 
