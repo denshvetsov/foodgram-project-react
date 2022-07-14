@@ -76,14 +76,14 @@ docker image ls<br/>
 docker volume ls<br/>
 
 остановить все контейнеры и удалить
-docker compose stop
-sudo docker compose rm web
-docker stop $(docker ps -a -q) 
-docker rm $(docker ps -a -q)
-docker rmi $(docker image ls)
+"docker compose stop"<br/>
+"sudo docker compose rm web"<br/>
+"docker stop $(docker ps -a -q)"<br/>
+"docker rm $(docker ps -a -q)"<br/>
+"docker rmi $(docker image ls)"<br/>
 
 # остановить и удалить все контенеры на сервере
-docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker image ls)
+"docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker image ls)"<br/>
 
 
 # Создайте суперпользователя
