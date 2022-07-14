@@ -26,13 +26,14 @@ https://foodgram.auxlink.com/
 - выделенный linux Ubuntu сервер
 - внешний IP адрес
 - зарегистрировнное доменное имя
-- nginx
-- cerbot
+- nginx 
 - docker
 - docker compose
 
 # Установка
 Подготовьте сервер к установке
+воспользуйтесь [!дополнительными рекомендациями по установке сервера](https://github.com/denshvetsov/server_deploy)
+
 Клонируйте репозиторий
 в каталоге /infra/ Создайте .env файл в формате
 
