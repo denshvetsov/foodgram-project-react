@@ -116,32 +116,20 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSWORD }}
         script: |
           cd foodgram/
-          # rm .env
-          # touch .env
-          # echo DEBUG=${{ secrets.DEBUG }} >> .env
-          # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-          # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
-          # echo CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} >> .env
-          # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-          # echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-          # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-          # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-          # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-          # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-          echo ${{ secrets.SUDO_PASS }} | sudo -S docker-compose stop
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker compose stop
           echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_frontend_1
           echo ${{ secrets.SUDO_PASS }} | sudo -S docker rm foodgram_backend_1
-          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_front
-          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_back
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_frontend
+          echo ${{ secrets.SUDO_PASS }} | sudo -S docker rmi ${{ secrets.DOCKER_USER }}/foodgram_backend
           echo ${{ secrets.SUDO_PASS }} | sudo -S docker compose up -d
   
-  # send_message:
-  #   runs-on: ubuntu-latest
-  #   needs: deploy
-  #   steps:
-  #   - name: send message
-  #     uses: appleboy/telegram-action@master
-  #     with:
-  #       to: ${{ secrets.TELEGRAM_TO }}
-  #       token: ${{ secrets.TELEGRAM_TOKEN }}
-  #       message: ${{ github.workflow }} успешно выполнен!
+  send_message:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+    - name: send message
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: ${{ github.workflow }} успешно выполнен!
