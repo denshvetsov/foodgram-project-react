@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import F
+from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import (ModelSerializer, SerializerMethodField,
-                                        ValidationError,)
+from rest_framework.serializers import (
+    CharField, IntegerField, ModelSerializer, PrimaryKeyRelatedField,
+    SerializerMethodField, ValidationError,)
+from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
 
@@ -35,7 +37,6 @@ class UserSerializer(ModelSerializer):
             last_name=validated_data['last_name'],
         )
         user.set_password(validated_data['password'])
-        user.save()
         return user
 
     def validate_username(self, username):
@@ -45,13 +46,13 @@ class UserSerializer(ModelSerializer):
             < settings.MAX_LEN_USER_CHARFIELD
         ):
             raise ValidationError(
-                f'Длина допустима от '
+                f'В поле username длина допустима от '
                 f'{settings.MIN_LEN_USER_CHARFIELD}'
                 f'до {settings.MAX_LEN_USER_CHARFIELD}'
             )
         if not username.isalpha():
             raise ValidationError(
-                'Допустимы только буквы.'
+                'В поле username Допустимы только буквы.'
             )
         return username.lower()
 
@@ -87,9 +88,6 @@ class UserSubscribeSerializer(UserSerializer):
         )
         read_only_fields = '__all__',
 
-    def get_is_subscribed(*args):
-        return True
-
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -112,6 +110,12 @@ class TagSerializer(ModelSerializer):
         read_only_fields = '__all__',
 
 
+class TagPrimaryKeyRelatedSerializer(PrimaryKeyRelatedField):
+
+    def to_representation(self, value):
+        return TagSerializer(value).data
+
+
 class IngredientSerializer(ModelSerializer):
     class Meta:
         model = Ingredient
@@ -119,10 +123,38 @@ class IngredientSerializer(ModelSerializer):
         read_only_fields = '__all__',
 
 
+class IngredientInRecipeSerializer(ModelSerializer):
+    id = IntegerField(source="ingredients.id")
+    name = CharField(source="ingredients.name", read_only=True)
+    measurement_unit = CharField(
+        source="ingredients.measurement_unit", read_only=True
+    )
+
+    class Meta:
+        model = IngredientAmount
+        fields = (
+            "id",
+            "name",
+            "measurement_unit",
+            "amount",
+        )
+        read_only_fields = ("name", "measurement_unit")
+        validators = [
+            UniqueTogetherValidator(
+                queryset=IngredientAmount.objects.all(),
+                fields=['ingredients', 'recipe']
+            )
+        ]
+
+
 class RecipeSerializer(ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
+    tags = TagPrimaryKeyRelatedSerializer(
+        queryset=Tag.objects.all(), many=True
+    )
     author = UserSerializer(read_only=True)
-    ingredients = SerializerMethodField()
+    ingredients = IngredientInRecipeSerializer(
+        many=True, source='ingredient_amount', read_only=True
+    )
     is_favorited = SerializerMethodField()
     is_in_shopping_cart = SerializerMethodField()
     image = Base64ImageField()
@@ -146,11 +178,6 @@ class RecipeSerializer(ModelSerializer):
             'is_shopping_cart',
         )
 
-    def get_ingredients(self, obj):
-        return obj.ingredients.values(
-            'id', 'name', 'measurement_unit', amount=F('recipe__amount')
-        )
-
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
@@ -164,25 +191,61 @@ class RecipeSerializer(ModelSerializer):
         return user.carts.filter(id=obj.id).exists()
 
     def validate(self, data):
-        name = self.initial_data.get('name')
-        tags = self.initial_data.get('tags')
+        """Логика работы:
+        - поля name, text, cooking_time
+        уже валидированы на уровне модели и доступны в data,
+        мы их сохраним автоматом при обновлении или создания рецепта.
+        - поле tags - значения валидируется на уровне модели,
+        убедимся в наличии минимум 1 тега
+        - ingredients валидируем из self.initial_data
+        и по завершению запишем в data
+        """
+        tags = data.get('tags')
         ingredients = self.initial_data.get('ingredients')
-        # преобразуем id ингридиентов в объекты связанной таблицы
+        if not tags:
+            raise ValidationError(
+                'Необходим минимум один тег'
+            )
+        if not ingredients:
+            raise ValidationError(
+                {'ingredients': 'В рецепте нужны ингредиенты'}
+            )
         validated_ingredients = []
-        for ingr in ingredients:
-            ingr_id = ingr.get('id')
-            # преобразуем queryset в один объект
-            ingredient = Ingredient.objects.filter(id=ingr_id)[0]
-            amount = ingr.get('amount')
+        validated_ingredients_ids = []
+        for ingredient_item in ingredients:
+            ingr_id = ingredient_item.get('id')
+            ingredient = get_object_or_404(
+                Ingredient, id=ingr_id
+            )
+            if ingr_id in validated_ingredients_ids:
+                raise ValidationError(
+                    f'"{ingredient}" уже добавлен в рецепт'
+                )
+            amount = ingredient_item.get('amount')
+            try:
+                int(amount)
+            except:
+                raise ValidationError(
+                    (f'Некорректное количество "{amount}" '
+                     f'ингредиента "{ingredient}". '
+                     'Допустимы только целые цифровые значения')
+                ):
             validated_ingredients.append(
                 {'ingredient': ingredient, 'amount': amount}
             )
+            validated_ingredients_ids.append(ingr_id)
         # переопределим выходные данные
-        data['name'] = name
         data['tags'] = tags
         data['ingredients'] = validated_ingredients
-        data['author'] = self.context.get('request').user
         return data
+
+    def create_ingredients(self, ingredients, recipe):
+        for ingredient in ingredients:
+            IngredientAmount.objects.get_or_create(
+                recipe=recipe,
+                ingredients=ingredient['ingredient'],
+                amount=ingredient['amount']
+            )
 
     def create(self, validated_data):
         """
@@ -204,35 +267,25 @@ class RecipeSerializer(ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(image=image, **validated_data)
         recipe.tags.set(tags)
-        for ingredient in ingredients:
-            IngredientAmount.objects.get_or_create(
-                recipe=recipe,
-                ingredients=ingredient['ingredient'],
-                amount=ingredient['amount']
-            )
+        self.create_ingredients(ingredients, recipe)
         return recipe
 
-    def update(self, recipe, validated_data):
-        tags = validated_data.get('tags')
-        ingredients = validated_data.get('ingredients')
-        recipe.image = validated_data.get(
-            'image', recipe.image)
-        recipe.name = validated_data.get(
-            'name', recipe.name)
-        recipe.text = validated_data.get(
-            'text', recipe.text)
-        recipe.cooking_time = validated_data.get(
-            'cooking_time', recipe.cooking_time)
-        if tags:
-            recipe.tags.clear()
-            recipe.tags.set(tags)
-        if ingredients:
-            recipe.ingredients.clear()
-            for ingredient in ingredients:
-                IngredientAmount.objects.get_or_create(
-                    recipe=recipe,
-                    ingredients=ingredient['ingredient'],
-                    amount=ingredient['amount']
-                )
-        recipe.save()
-        return recipe
+    def update(self, instance, validated_data):
+        """
+        Логика работы:
+        - Поля по умолчанию обновляются
+          super().update(instance, validated_data)
+        - ingredients
+          self.create_ingredients(ingredients, instance)
+        - tags
+          instance.tags.set(tags)
+        """
+        if 'ingredients' in validated_data:
+            ingredients = validated_data.pop('ingredients')
+            instance.ingredients.clear()
+            self.create_ingredients(ingredients, instance)
+        if 'tags' in validated_data:
+            tags = validated_data.pop('tags')
+            instance.tags.clear()
+            instance.tags.set(tags)
+        return super().update(instance, validated_data)

@@ -3,6 +3,8 @@ from django.contrib.postgres.search import SearchVector
 from django.db.models import F, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -10,8 +12,7 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from djoser.views import UserViewSet as DjoserUserViewSet
-
+from .filters import RecipeFilter
 from .paginators import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, UserAndAdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeSerializer,
@@ -29,19 +30,18 @@ class UserViewSet(DjoserUserViewSet):
     additional_serializer = UserSubscribeSerializer
 
     @action(methods=('POST', 'DELETE'), detail=True)
-    def subscribe(self, request, id):
+    def subscribe(self, request, **kwargs):
         user = self.request.user
         if user.is_anonymous:
             return Response(status=HTTP_401_UNAUTHORIZED)
-        obj = get_object_or_404(self.queryset, id=id)
+        obj = get_object_or_404(self.queryset, id=kwargs.get('id'))
         serializer = self.additional_serializer(
             obj, context={'request': self.request}
         )
-        obj_exist = user.subscribe.filter(id=id).exists()
-        if (self.request.method in ['POST']) and not obj_exist:
+        if self.request.method in ['POST']:
             user.subscribe.add(obj)
             return Response(serializer.data, status=HTTP_201_CREATED)
-        if (self.request.method in ['DELETE']) and obj_exist:
+        if self.request.method in ['DELETE']:
             user.subscribe.remove(obj)
             return Response(status=HTTP_204_NO_CONTENT)
         return Response(status=HTTP_400_BAD_REQUEST)
@@ -74,7 +74,10 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
-
+    # search_fields = ('name',)
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_class = IngredientFilter
+    
     def get_queryset(self):
         queryset = self.queryset
         name = self.request.query_params.get('name')
@@ -91,62 +94,61 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (UserAndAdminOrReadOnly,)
     pagination_class = LimitPageNumberPagination
     additional_serializer = ShortRecipeSerializer
+    filter_class = RecipeFilter
 
-    def get_queryset(self):
-        queryset = self.queryset
-        tags = self.request.query_params.getlist('tags')
-        if tags:
-            queryset = queryset.filter(
-                tags__slug__in=tags).distinct()
-        author = self.request.query_params.get('author')
-        if author:
-            queryset = queryset.filter(author=author)
-        user = self.request.user
-        if user.is_anonymous:
-            return queryset
-        is_favorited = self.request.query_params.get('is_favorited')
-        if is_favorited:
-            queryset = queryset.filter(favorite=user.id)
-        is_in_shopping = self.request.query_params.get('is_in_shopping_cart')
-        if is_in_shopping:
-            queryset = queryset.filter(cart=user.id)
-        return queryset
+    # def get_queryset(self):
+    #     queryset = self.queryset
+    #     tags = self.request.query_params.getlist('tags')
+    #     if tags:
+    #         queryset = queryset.filter(
+    #             tags__slug__in=tags).distinct()
+    #     author = self.request.query_params.get('author')
+    #     if author:
+    #         queryset = queryset.filter(author=author)
+    #     user = self.request.user
+    #     if user.is_anonymous:
+    #         return queryset
+    #     is_favorited = self.request.query_params.get('is_favorited')
+    #     if is_favorited:
+    #         queryset = queryset.filter(favorite=user.id)
+    #     is_in_shopping = self.request.query_params.get('is_in_shopping_cart')
+    #     if is_in_shopping:
+    #         queryset = queryset.filter(cart=user.id)
+    #     return queryset
 
-    @action(methods=('POST', 'DELETE'), detail=True)
-    def favorite(self, request, pk):
+    def post_delete_obj(self, request, table, **kwargs):
+        """
+        Вспомогательный метод для добавления/удаления объектов
+        user.favorites, user.carts
+        """
         user = self.request.user
-        if user.is_anonymous:
-            return Response(status=HTTP_401_UNAUTHORIZED)
-        obj = get_object_or_404(self.queryset, id=pk)
-        serializer = self.additional_serializer(
-            obj, context={'request': self.request}
-        )
-        obj_exist = user.favorites.filter(id=pk).exists()
-        if (self.request.method in ['POST']) and not obj_exist:
-            user.favorites.add(obj)
-            return Response(serializer.data, status=HTTP_201_CREATED)
-        if (self.request.method in ['DELETE']) and obj_exist:
-            user.favorites.remove(obj)
-            return Response(status=HTTP_204_NO_CONTENT)
-        return Response(status=HTTP_400_BAD_REQUEST)
-
-    @action(methods=('POST', 'DELETE'), detail=True)
-    def shopping_cart(self, request, pk):
-        user = self.request.user
+        pk = kwargs.get('pk')
         if user.is_anonymous:
             return Response(status=HTTP_401_UNAUTHORIZED)
         obj = get_object_or_404(self.queryset, id=pk)
         serializer = self.additional_serializer(
             obj, context={'request': self.request}
         )
-        obj_exist = user.carts.filter(id=pk).exists()
-        if (self.request.method in ['POST']) and not obj_exist:
-            user.carts.add(obj)
+        tables = {
+            'favorites':user.favorites,
+            'carts':user.carts,
+        }
+        table = tables[table]
+        if self.request.method in ['POST']:
+            table.add(obj)
             return Response(serializer.data, status=HTTP_201_CREATED)
-        if (self.request.method in ['DELETE']) and obj_exist:
-            user.carts.remove(obj)
+        if self.request.method in ['DELETE']:
+            table.remove(obj)
             return Response(status=HTTP_204_NO_CONTENT)
         return Response(status=HTTP_400_BAD_REQUEST)
+
+    @action(methods=('POST', 'DELETE'), detail=True)
+    def favorite(self, request, **kwargs):
+        return self.post_delete_obj(request, 'favorites', **kwargs)
+
+    @action(methods=('POST', 'DELETE'), detail=True)
+    def shopping_cart(self, request, **kwargs):
+        return self.post_delete_obj(request, 'carts', **kwargs)
 
     @action(methods=('GET',), detail=False)
     def download_shopping_cart(self, request):
@@ -158,14 +160,14 @@ class RecipeViewSet(ModelViewSet):
         ).values(
             ingredient=F('ingredients__name'),
             measure_unit=F('ingredients__measurement_unit')
-        ).annotate(amount=Sum('amount'))
+        ).annotate(amount_cart=Sum('amount'))
         filename = f'{user.username}_shopping_list.txt'
         shopping_list = ("Список покупок\n")
 
         for ingr in ingredients:
             shopping_list += (
                 f'{ingr["ingredient"]}: '
-                f'{ingr["amount"]} '
+                f'{ingr["amount_cart"]} '
                 f'{ingr["measure_unit"]}\n'
             )
         response = HttpResponse(

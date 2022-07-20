@@ -17,13 +17,13 @@ User = get_user_model()
 
 class Ingredient(Model):
     """
-    Модель интгридиентов - ингридиенты добавляются администратором
+    Модель интгридиентов - ингредиенты добавляются администратором
     через admin панель. Обязательная проверка на уникальность
     сочетания name и measurement_unit
-    search_vector - вспомогательное поле для поиска ингридиента
+    search_vector - вспомогательное поле для поиска ингредиента
     """
     name = CharField(
-        verbose_name='Ингридиент',
+        verbose_name='Ингредиент',
         max_length=settings.MAX_LEN_INGRIDIENT_CHARFIELD,
         validators=[
             MinLengthValidator(
@@ -33,7 +33,7 @@ class Ingredient(Model):
         ]
     )
     measurement_unit = CharField(
-        verbose_name='Единицы измерения',
+        verbose_name='Единица измерения',
         max_length=settings.MAX_LEN_INGRIDIENT_CHARFIELD,
         validators=[
             MinLengthValidator(
@@ -44,8 +44,8 @@ class Ingredient(Model):
     search_vector = SearchVectorField(null=True)
 
     class Meta:
-        verbose_name = 'Ингридиент'
-        verbose_name_plural = 'Ингридиенты'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
         ordering = ('name', )
         constraints = (
             UniqueConstraint(
@@ -222,18 +222,18 @@ class Recipe(Model):
 
 class IngredientAmount(Model):
     """
-    количество ингридиента в рецептах
-    каждый ингридиент в рецепте используется только один раз
+    количество ингредиента в рецептах
+    каждый ингредиент в рецепте используется только один раз
     """
     recipe = ForeignKey(
         verbose_name='В рецептах',
-        related_name='ingredient',
+        related_name='ingredient_amount',
         to=Recipe,
         on_delete=CASCADE,
     )
     ingredients = ForeignKey(
         verbose_name='Связанные ингредиенты',
-        related_name='recipe',
+        related_name='ingredient_amount',
         to=Ingredient,
         on_delete=CASCADE,
     )
@@ -250,7 +250,7 @@ class IngredientAmount(Model):
             RegexValidator(
                 '^[0-9]+$',
                 (
-                    'Количество ингридиента может быть '
+                    'Количество ингредиента может быть '
                     'только числом от 1 до 1000'
                 )
             ),
@@ -258,8 +258,8 @@ class IngredientAmount(Model):
     )
 
     class Meta:
-        verbose_name = 'Ингридиент'
-        verbose_name_plural = 'Количество ингридиентов'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Количество ингредиентов'
         ordering = ('recipe', )
         constraints = (
             UniqueConstraint(

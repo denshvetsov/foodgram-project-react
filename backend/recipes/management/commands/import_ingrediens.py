@@ -34,7 +34,7 @@ class Command(BaseCommand):
                         print('Ошибка импорта', record, error)
 
                 print(
-                    f"Загрузка ингридиентов завершена! "
+                    f"Загрузка ингредиентов завершена! "
                     f"Загружено товаров: "
                     f"{Ingredient.objects.all().count()}"
                 )
