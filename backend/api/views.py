@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.search import SearchVector
 from django.db.models import F, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,8 +10,6 @@ from rest_framework.status import (
     HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
-from django_filters.rest_framework import DjangoFilterBackend
 
 from .filters import IngredientFilter
 from .paginators import LimitPageNumberPagination
@@ -78,15 +76,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     search_fields = ('name',)
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
-
-    def get_queryset(self):
-        queryset = self.queryset
-        name = self.request.query_params.get('name')
-        if name:
-            queryset = queryset.annotate(
-                search=SearchVector('name'),
-            ).filter(search__icontains=name)
-        return queryset
 
 
 class RecipeViewSet(ModelViewSet):

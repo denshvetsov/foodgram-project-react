@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import CharField, EmailField, ManyToManyField
 
-
 USER = 'user'
 ADMIN = 'admin'
 
