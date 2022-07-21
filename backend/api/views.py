@@ -3,7 +3,6 @@ from django.contrib.postgres.search import SearchVector
 from django.db.models import F, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +11,9 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .filters import RecipeFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .filters import IngredientFilter
 from .paginators import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, UserAndAdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeSerializer,
@@ -67,17 +68,17 @@ class TagViewSet(ReadOnlyModelViewSet):
 
 class IngredientViewSet(ReadOnlyModelViewSet):
     """
-    по полю name реализован поиск SearchVector
+    по полю name реализован поиск
     не чувствительный к регистру и вхождению в слове
     совместимо только с PostgreSQL
     """
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    # search_fields = ('name',)
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_class = IngredientFilter
-    
+    search_fields = ('name',)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
+
     def get_queryset(self):
         queryset = self.queryset
         name = self.request.query_params.get('name')
@@ -94,27 +95,26 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (UserAndAdminOrReadOnly,)
     pagination_class = LimitPageNumberPagination
     additional_serializer = ShortRecipeSerializer
-    filter_class = RecipeFilter
 
-    # def get_queryset(self):
-    #     queryset = self.queryset
-    #     tags = self.request.query_params.getlist('tags')
-    #     if tags:
-    #         queryset = queryset.filter(
-    #             tags__slug__in=tags).distinct()
-    #     author = self.request.query_params.get('author')
-    #     if author:
-    #         queryset = queryset.filter(author=author)
-    #     user = self.request.user
-    #     if user.is_anonymous:
-    #         return queryset
-    #     is_favorited = self.request.query_params.get('is_favorited')
-    #     if is_favorited:
-    #         queryset = queryset.filter(favorite=user.id)
-    #     is_in_shopping = self.request.query_params.get('is_in_shopping_cart')
-    #     if is_in_shopping:
-    #         queryset = queryset.filter(cart=user.id)
-    #     return queryset
+    def get_queryset(self):
+        queryset = self.queryset
+        tags = self.request.query_params.getlist('tags')
+        if tags:
+            queryset = queryset.filter(
+                tags__slug__in=tags).distinct()
+        author = self.request.query_params.get('author')
+        if author:
+            queryset = queryset.filter(author=author)
+        user = self.request.user
+        if user.is_anonymous:
+            return queryset
+        is_favorited = self.request.query_params.get('is_favorited')
+        if is_favorited:
+            queryset = queryset.filter(favorite=user.id)
+        is_in_shopping = self.request.query_params.get('is_in_shopping_cart')
+        if is_in_shopping:
+            queryset = queryset.filter(cart=user.id)
+        return queryset
 
     def post_delete_obj(self, request, table, **kwargs):
         """
@@ -130,8 +130,8 @@ class RecipeViewSet(ModelViewSet):
             obj, context={'request': self.request}
         )
         tables = {
-            'favorites':user.favorites,
-            'carts':user.carts,
+            'favorites': user.favorites,
+            'carts': user.carts,
         }
         table = tables[table]
         if self.request.method in ['POST']:

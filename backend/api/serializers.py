@@ -229,7 +229,7 @@ class RecipeSerializer(ModelSerializer):
                     (f'Некорректное количество "{amount}" '
                      f'ингредиента "{ingredient}". '
                      'Допустимы только целые цифровые значения')
-                ):
+                )
             validated_ingredients.append(
                 {'ingredient': ingredient, 'amount': amount}
             )
