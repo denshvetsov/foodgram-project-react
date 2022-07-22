@@ -11,7 +11,7 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilters
 from .paginators import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, UserAndAdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeSerializer,
@@ -37,10 +37,10 @@ class UserViewSet(DjoserUserViewSet):
         serializer = self.additional_serializer(
             obj, context={'request': self.request}
         )
-        if self.request.method in ['POST']:
+        if self.request.method == 'POST':
             user.subscribe.add(obj)
             return Response(serializer.data, status=HTTP_201_CREATED)
-        if self.request.method in ['DELETE']:
+        if self.request.method == 'DELETE':
             user.subscribe.remove(obj)
             return Response(status=HTTP_204_NO_CONTENT)
         return Response(status=HTTP_400_BAD_REQUEST)
@@ -84,26 +84,7 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (UserAndAdminOrReadOnly,)
     pagination_class = LimitPageNumberPagination
     additional_serializer = ShortRecipeSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        tags = self.request.query_params.getlist('tags')
-        if tags:
-            queryset = queryset.filter(
-                tags__slug__in=tags).distinct()
-        author = self.request.query_params.get('author')
-        if author:
-            queryset = queryset.filter(author=author)
-        user = self.request.user
-        if user.is_anonymous:
-            return queryset
-        is_favorited = self.request.query_params.get('is_favorited')
-        if is_favorited:
-            queryset = queryset.filter(favorite=user.id)
-        is_in_shopping = self.request.query_params.get('is_in_shopping_cart')
-        if is_in_shopping:
-            queryset = queryset.filter(cart=user.id)
-        return queryset
+    filter_class = RecipeFilters
 
     def post_delete_obj(self, request, table, **kwargs):
         """
@@ -123,10 +104,10 @@ class RecipeViewSet(ModelViewSet):
             'carts': user.carts,
         }
         table = tables[table]
-        if self.request.method in ['POST']:
+        if self.request.method == 'POST':
             table.add(obj)
             return Response(serializer.data, status=HTTP_201_CREATED)
-        if self.request.method in ['DELETE']:
+        if self.request.method == 'DELETE':
             table.remove(obj)
             return Response(status=HTTP_204_NO_CONTENT)
         return Response(status=HTTP_400_BAD_REQUEST)
