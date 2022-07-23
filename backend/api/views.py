@@ -14,8 +14,9 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .filters import IngredientFilter, RecipeFilters
 from .paginators import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, UserAndAdminOrReadOnly
-from .serializers import (IngredientSerializer, RecipeSerializer,
-                          ShortRecipeSerializer, TagSerializer, UserSerializer,
+from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+                          RecipeSerializer, ShortRecipeSerializer,
+                          TagSerializer, UserSerializer,
                           UserSubscribeSerializer,)
 from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
 
@@ -80,11 +81,24 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.select_related('author')
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeCreateSerializer
     permission_classes = (UserAndAdminOrReadOnly,)
     pagination_class = LimitPageNumberPagination
     additional_serializer = ShortRecipeSerializer
     filter_class = RecipeFilters
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PATCH', 'PUT']:
+            return RecipeCreateSerializer
+        return RecipeSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'request': self.request})
+        return context
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     def post_delete_obj(self, request, table, **kwargs):
         """

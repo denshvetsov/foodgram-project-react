@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (
     CharField, IntegerField, ModelSerializer, PrimaryKeyRelatedField,
@@ -82,7 +81,6 @@ class UserSubscribeSerializer(UserSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed',
             'recipes',
             'recipes_count',
         )
@@ -108,12 +106,6 @@ class TagSerializer(ModelSerializer):
         model = Tag
         fields = '__all__'
         read_only_fields = '__all__',
-
-
-class TagPrimaryKeyRelatedSerializer(PrimaryKeyRelatedField):
-
-    def to_representation(self, value):
-        return TagSerializer(value).data
 
 
 class IngredientSerializer(ModelSerializer):
@@ -147,10 +139,19 @@ class IngredientInRecipeSerializer(ModelSerializer):
         ]
 
 
-class RecipeSerializer(ModelSerializer):
-    tags = TagPrimaryKeyRelatedSerializer(
-        queryset=Tag.objects.all(), many=True
+class IngredientRecipeCreateSerializer(ModelSerializer):
+    id = PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
     )
+    amount = IntegerField()
+
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'amount')
+
+
+class RecipeSerializer(ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(
         many=True, source='ingredient_amount', read_only=True
@@ -190,6 +191,40 @@ class RecipeSerializer(ModelSerializer):
             return False
         return user.carts.filter(id=obj.id).exists()
 
+
+class RecipeCreateSerializer(ModelSerializer):
+    tags = PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(), many=True
+    )
+    author = UserSerializer(read_only=True)
+    ingredients = IngredientRecipeCreateSerializer(many=True)
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return user.favorites.filter(id=obj.id).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return user.carts.filter(id=obj.id).exists()
+
     def validate(self, data):
         """Логика работы:
         - поля name, text, cooking_time
@@ -197,11 +232,10 @@ class RecipeSerializer(ModelSerializer):
         мы их сохраним автоматом при обновлении или создания рецепта.
         - поле tags - значения валидируется на уровне модели,
         убедимся в наличии минимум 1 тега
-        - ingredients валидируем из self.initial_data
-        и по завершению запишем в data
+        - ingredients валидируем наличие в рецепте и количество
         """
         tags = data.get('tags')
-        ingredients = self.initial_data.get('ingredients')
+        ingredients = data.get('ingredients')
         if not tags:
             raise ValidationError(
                 'Необходим минимум один тег'
@@ -210,16 +244,12 @@ class RecipeSerializer(ModelSerializer):
             raise ValidationError(
                 {'ingredients': 'В рецепте нужны ингредиенты'}
             )
-        validated_ingredients = []
-        validated_ingredients_ids = []
+        validated_ingredients_obj = []
         for ingredient_item in ingredients:
-            ingr_id = ingredient_item.get('id')
-            ingredient = get_object_or_404(
-                Ingredient, id=ingr_id
-            )
-            if ingr_id in validated_ingredients_ids:
+            ingr_obj = ingredient_item['id']
+            if ingr_obj in validated_ingredients_obj:
                 raise ValidationError(
-                    f'"{ingredient}" уже добавлен в рецепт'
+                    f'"{ingr_obj}" уже добавлен в рецепт'
                 )
             amount = ingredient_item.get('amount')
             try:
@@ -227,23 +257,17 @@ class RecipeSerializer(ModelSerializer):
             except:
                 raise ValidationError(
                     (f'Некорректное количество "{amount}" '
-                     f'ингредиента "{ingredient}". '
+                     f'ингредиента "{ingr_obj}". '
                      'Допустимы только целые цифровые значения')
                 )
-            validated_ingredients.append(
-                {'ingredient': ingredient, 'amount': amount}
-            )
-            validated_ingredients_ids.append(ingr_id)
-        # переопределим выходные данные
-        data['tags'] = tags
-        data['ingredients'] = validated_ingredients
+            validated_ingredients_obj.append(ingr_obj)
         return data
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             IngredientAmount.objects.get_or_create(
                 recipe=recipe,
-                ingredients=ingredient['ingredient'],
+                ingredients=ingredient['id'],
                 amount=ingredient['amount']
             )
 
@@ -289,3 +313,10 @@ class RecipeSerializer(ModelSerializer):
             instance.tags.clear()
             instance.tags.set(tags)
         return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        data = RecipeSerializer(
+            instance,
+            context={'request': self.context.get('request')}
+        ).data
+        return data
