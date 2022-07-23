@@ -5,15 +5,13 @@ from dotenv import load_dotenv
 load_dotenv('../infra/.env')
 
 # Отладочная конфигурация для локальной сборки
-LOCAL_BUILD = True
+LOCAL_BUILD = False
 if LOCAL_BUILD:
     load_dotenv('../infra_local_build/.env')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = os.getenv(
-    'DEBUG', default=False
-)
+DEBUG = False
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
