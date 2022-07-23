@@ -18,9 +18,9 @@
 
 https://foodgram.auxlink.com/
 
-login: superadmin
-email: superadmin@superadmin.ru
-passw: superadmin
+login: superadmin<br/>
+email: superadmin@superadmin.ru<br/>
+passw: superadmin<br/>
 
 # Foodgram - «Продуктовый помощник»
 
