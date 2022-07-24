@@ -39,7 +39,9 @@ class User(AbstractUser):
                 settings.MIN_LEN_USER_ERROR_MSG
             ),
             RegexValidator(
-                '^[a-zA-Zа-яА-Я]+$'
+                '^[a-zA-Zа-яА-Я@.]+$',
+                ('"Имя пользователя" может содержать русские'
+                 'латинские символы, знак ".", знак "@"')
             )
         )
     )
@@ -52,7 +54,9 @@ class User(AbstractUser):
                 settings.MIN_LEN_USER_ERROR_MSG
             ),
             RegexValidator(
-                '^[a-zA-Zа-яА-Я]+$'
+                '^[a-zA-Zа-яА-Я@.]+$',
+                ('"Имя" может содержать русские'
+                 'латинские символы, знак ".", знак "@"')
             )
         )
     )
@@ -65,7 +69,9 @@ class User(AbstractUser):
                 settings.MIN_LEN_USER_ERROR_MSG
             ),
             RegexValidator(
-                '^[a-zA-Zа-яА-Я]+$'
+                '^[a-zA-Zа-яА-Я@.]+$',
+                ('"Фамилия" может содержать русские'
+                 'латинские символы, знак ".", знак "@"')
             )
         )
     )
