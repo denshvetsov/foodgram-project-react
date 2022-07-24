@@ -36,6 +36,7 @@ class UserSerializer(ModelSerializer):
             last_name=validated_data['last_name'],
         )
         user.set_password(validated_data['password'])
+        user.save()
         return user
 
     def validate_username(self, username):
@@ -48,10 +49,6 @@ class UserSerializer(ModelSerializer):
                 f'В поле username длина допустима от '
                 f'{settings.MIN_LEN_USER_CHARFIELD}'
                 f'до {settings.MAX_LEN_USER_CHARFIELD}'
-            )
-        if not username.isalpha():
-            raise ValidationError(
-                'В поле username Допустимы только буквы.'
             )
         return username.lower()
 
