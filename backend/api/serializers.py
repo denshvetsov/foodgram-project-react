@@ -254,11 +254,11 @@ class RecipeCreateSerializer(ModelSerializer):
                     f'"{ingr_obj}" уже добавлен в рецепт'
                 )
             amount = ingredient_item.get('amount')
-            if type(amount) is not int or (amount < 1 or amount > 1000):
+            if type(amount) is not int or (amount < 1 or amount > 10000):
                 raise ValidationError(
                     (f'Некорректное количество "{amount}" '
                      f'ингредиента "{ingr_obj}". Допустимы только '
-                      'целые цифровые значения больше 1 и меньше 1000')
+                      'целые цифровые значения больше 1 и меньше 10000')
                 )
             validated_ingredients_obj.append(ingr_obj)
         return data
