@@ -222,11 +222,6 @@ class RecipeCreateSerializer(ModelSerializer):
             return False
         return user.carts.filter(id=obj.id).exists()
 
-    # def get_name(self, obj):
-    #     print (obj)
-    #     #name = " ".join(obj.split()).strip().lower()
-    #     return obj
-
     def validate(self, data):
         """Логика работы:
         - поля name, text, cooking_time
