@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import F, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -99,6 +100,24 @@ class RecipeViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(
+                {"errors": "Такой рецепт существует! Измените название"},
+                HTTP_400_BAD_REQUEST
+            )
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(
+                {"errors": "Такой рецепт существует! Измените название"},
+                HTTP_400_BAD_REQUEST
+            )
 
     def post_delete_obj(self, request, table, **kwargs):
         """

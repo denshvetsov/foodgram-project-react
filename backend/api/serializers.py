@@ -222,6 +222,11 @@ class RecipeCreateSerializer(ModelSerializer):
             return False
         return user.carts.filter(id=obj.id).exists()
 
+    # def get_name(self, obj):
+    #     print (obj)
+    #     #name = " ".join(obj.split()).strip().lower()
+    #     return obj
+
     def validate(self, data):
         """Логика работы:
         - поля name, text, cooking_time
@@ -257,6 +262,23 @@ class RecipeCreateSerializer(ModelSerializer):
                 )
             validated_ingredients_obj.append(ingr_obj)
         return data
+
+    def validate_cooking_time(self, data):
+        if data <= 0:
+            raise ValidationError(
+                'Время приготовления не должно быть равно 0'
+            )
+        return data
+
+    def validate_name(self, data):
+        """
+        Пост процессинг названия рецепта для корректной
+        работы UniqueConstraint. Удаляем двойные пробелы,
+        пробелы вначале и в конце предложения.
+        переводим имя в нижний регистр
+        """
+        name = " ".join(data.split()).strip().lower()
+        return name
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
