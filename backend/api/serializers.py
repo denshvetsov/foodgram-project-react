@@ -259,9 +259,10 @@ class RecipeCreateSerializer(ModelSerializer):
         return data
 
     def validate_cooking_time(self, data):
-        if data <= 0:
+        if data <= 0 or data > 300:
             raise ValidationError(
-                'Время приготовления не должно быть равно 0'
+                'Время приготовления не должно быть '
+                ' больше 0 и меньше 300 минут.'
             )
         return data
 
