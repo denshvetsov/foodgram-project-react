@@ -1,15 +1,26 @@
+from django.db import models
 from django_filters.rest_framework import FilterSet, filters
 
 from recipes.models import Ingredient, Recipe
 
 
 class IngredientFilter(FilterSet):
-
-    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
+    """
+    Поиск сначала по точному совпадению,
+    потом по вхождению в слове
+    """
+    name = filters.CharFilter(method='filter_name')
 
     class Meta:
         model = Ingredient
         fields = ('name',)
+
+    def filter_name(self, queryset, name, value):
+        q1 = queryset.filter(name__iexact=value).annotate(
+            q_ord=models.Value(0, models.IntegerField()))
+        q2 = queryset.filter(name__icontains=value).annotate(
+            q_ord=models.Value(1, models.IntegerField()))
+        return q1.union(q2).order_by('q_ord')
 
 
 class RecipeFilters(FilterSet):
