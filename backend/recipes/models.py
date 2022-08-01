@@ -117,6 +117,7 @@ class Tag(Model):
 
     def save(self, *args, **kwargs):
         """
+        Пост процессинг ввода
         превод слега в нижний регистр при сохранении
         """
         self.slug = self.slug.lower()

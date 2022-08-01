@@ -1,5 +1,7 @@
 from django.db import models
 from django_filters.rest_framework import FilterSet, filters
+from django.contrib.postgres.search import SearchVector
+
 
 from recipes.models import Ingredient, Recipe
 
@@ -15,12 +17,28 @@ class IngredientFilter(FilterSet):
         model = Ingredient
         fields = ('name',)
 
+    # def filter_name(self, queryset, name, value):
+    #     q1 = queryset.filter(name__iexact=value).annotate(
+    #         q_ord=models.Value(0, models.IntegerField()))
+    #     q2 = queryset.filter(name__icontains=value).annotate(
+    #         q_ord=models.Value(1, models.IntegerField()))
+    #     return q1.union(q2).order_by('q_ord')
+
     def filter_name(self, queryset, name, value):
-        q1 = queryset.filter(name__iexact=value).annotate(
-            q_ord=models.Value(0, models.IntegerField()))
-        q2 = queryset.filter(name__icontains=value).annotate(
-            q_ord=models.Value(1, models.IntegerField()))
-        return q1.union(q2).order_by('q_ord')
+        """
+        каскадный поиск по вхождению до двух значений
+        разделенных пробелом
+        """
+        search_words = value.split()
+        queryset = queryset.annotate(search=SearchVector('name'),
+            ).filter(
+                search__icontains=search_words[0]
+                )
+        if len(search_words) == 2:
+            queryset = queryset.filter(
+                search__icontains=search_words[1]
+                )
+        return queryset.order_by('search')
 
 
 class RecipeFilters(FilterSet):
